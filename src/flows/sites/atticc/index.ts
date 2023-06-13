@@ -33,12 +33,12 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
             await flows.metamask.notification(browser);
 
-            await timeout(5000);
+            await timeout(3000);
         }
     }
 
     async function collect_gift() {
-        const gift = await page.$('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
+        const gift = await page.waitForSelector('div[class*="MuiIconButton-root"] svg:has(linearGradient)', { visible: true, timeout: 60000 })
 
         if (gift) {
             await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
@@ -47,6 +47,8 @@ export default async (browser: Browser, profile: IJSONAccount) => {
             await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
 
             await flows.metamask.notification(browser);
+
+            await timeout(3000);
         }
     }
 
