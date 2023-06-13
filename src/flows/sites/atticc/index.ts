@@ -3,6 +3,7 @@ import { timeout, random_delay } from "../../../../utils";
 
 import sheetsAPI from "../../../services/SheetsAPI";
 import flows from "../../index";
+import config from "../../../config";
 
 export default async (browser: Browser, profile: IJSONAccount) => {
     const page = await browser.newPage();
@@ -21,19 +22,24 @@ export default async (browser: Browser, profile: IJSONAccount) => {
     }
 
     async function create_new_post(): Promise<void> {
-        await enable_free_mint()
+        if (config.MAKE_POST) {
+            await enable_free_mint()
 
-        await page.waitForSelector('textarea[id="create-post-input-field"]', { visible: true });
-        await page.type('textarea[id="create-post-input-field"]', profile.message);
-        await page.click('button[type="submit"]:not([disabled])');
+            await timeout(2000);
 
-        await flows.metamask.notification(browser);
+            await page.waitForSelector('textarea[id="create-post-input-field"]', { visible: true });
+            await page.type('textarea[id="create-post-input-field"]', profile.message);
+            await page.click('button[type="submit"]:not([disabled])');
 
-        await timeout(5000);
+            await flows.metamask.notification(browser);
+
+            await timeout(5000);
+        }
     }
 
     async function collect_gift() {
         const gift = await page.$('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
+
         if (gift) {
             await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
 
@@ -44,7 +50,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
         }
     }
 
-    const blocks = [{ message: "attic - creating post", method: create_new_post }, { message: "attic - collecting gift", method: collect_gift } ]
+    const blocks = [ { message: "attic - creating post", method: create_new_post }, { message: "attic - collecting gift", method: collect_gift } ]
         .map(value => ({ value, sort: Math.random() }))
         .sort((a, b) => a.sort - b.sort)
         .map(({ value }) => value);

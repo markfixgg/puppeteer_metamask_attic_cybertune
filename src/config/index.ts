@@ -3,6 +3,7 @@ interface IConfig {
     DELAYS: number[];
     SHEET_ID: string;
     GAS_AMOUNT: number;
+    MAKE_POST: boolean;
     CHECK_AMOUNT_OF_AVAILABLE_MESSAGE: boolean;
 }
 
@@ -11,6 +12,7 @@ const config: IConfig = {
     DELAYS: [ 3000 ],
     SHEET_ID: "1NCvQhTMhgbpIXdsUVQkT6oQJNzw4fHUA3DF0p-hdn5U",
     GAS_AMOUNT: 1,
+    MAKE_POST: false,
     CHECK_AMOUNT_OF_AVAILABLE_MESSAGE: false
 };
 
