@@ -13,7 +13,7 @@ export default async (browser: Browser) => {
     })();
 
     await (async function collect_all_rewards(): Promise<void> {
-        const elements  = await page.$$('section:nth-child(3) button:not([disabled])');
+        const elements  = await page.$x('//section[.//h6[contains(text(), "CyberConnect Protocol Engagement")]]//button[not(@disabled)]') as ElementHandle<HTMLButtonElement>[];
 
         // Add retry counter to each button and shuffle an array
         const buttons = elements

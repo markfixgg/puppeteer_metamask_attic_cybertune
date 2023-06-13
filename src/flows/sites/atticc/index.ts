@@ -9,7 +9,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
     await page.goto(`https://atticc.xyz/users/${profile.wallet}/posts`, { waitUntil: 'domcontentloaded' });
 
-    await (async function enable_free_mint(): Promise<void> {
+    async function enable_free_mint(): Promise<void> {
         await page.waitForSelector('button[class*="MuiButton-outlineGradient"]', { visible: true });
         await page.click('button[class*="MuiButton-outlineGradient"]');
 
@@ -18,11 +18,11 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
         await page.waitForSelector('div[class*="MuiDialog-container"]:has(input[id="isFreeMint"]) div[class*="MuiDialogActions"] button:nth-child(2)', { visible: true });
         await page.click('div[class*="MuiDialog-container"]:has(input[id="isFreeMint"]) div[class*="MuiDialogActions"] button:nth-child(2)');
-    })()
-        .then(() => sheetsAPI.logger.info('atticc - Enabled free mint', profile.id))
-        .catch(() => sheetsAPI.logger.error('atticc - Unable to enable free mint', profile.id));
+    }
 
-    await (async function create_new_post(): Promise<void> {
+    async function create_new_post(): Promise<void> {
+        await enable_free_mint()
+
         await page.waitForSelector('textarea[id="create-post-input-field"]', { visible: true });
         await page.type('textarea[id="create-post-input-field"]', profile.message);
         await page.click('button[type="submit"]:not([disabled])');
@@ -30,11 +30,9 @@ export default async (browser: Browser, profile: IJSONAccount) => {
         await flows.metamask.notification(browser);
 
         await timeout(5000);
-    })()
-        .then(() => sheetsAPI.logger.info(`atticc - Created new post with message: ${profile.message}`, profile.id))
-        .catch(() => sheetsAPI.logger.error('atticc - Unable to created new post', profile.id));
+    }
 
-    await (async function collect_gift() {
+    async function collect_gift() {
         const gift = await page.$('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
         if (gift) {
             await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
@@ -44,9 +42,20 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
             await flows.metamask.notification(browser);
         }
-    })()
-        .then(() => sheetsAPI.logger.info(`atticc - Collected the gift`, profile.id))
-        .catch(() => sheetsAPI.logger.error('atticc - Unable to collect the gift', profile.id));
+    }
+
+    const blocks = [{ message: "attic - creating post", method: create_new_post }, { message: "attic - collecting gift", method: collect_gift } ]
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
+
+    for (const block of blocks) {
+        await block.method()
+            .then(() => sheetsAPI.logger.info(`${block.message} success`, profile.id))
+            .catch(() => sheetsAPI.logger.info(`${block.message} fail`, profile.id));
+
+        await timeout(3000);
+    }
 
     await page.close();
 }
