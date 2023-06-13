@@ -1,5 +1,8 @@
 import { Browser, Page, Target } from "puppeteer";
+
 import { timeout, to, wait, random_delay } from "../../../../utils";
+
+import config from "../../../config";
 
 const markers = {
     'confirm-page-container-summary': 'div[class="confirm-page-container-summary"]',
@@ -14,7 +17,7 @@ const functions = {
 
         await page.waitForSelector('div[class="advanced-gas-controls"] div[class="form-field"]:nth-child(2) input', { visible: true });
         await page.click('div[class="advanced-gas-controls"] div[class="form-field"]:nth-child(2) input', { count: 3 });
-        await page.type('div[class="advanced-gas-controls"] div[class="form-field"]:nth-child(2) input', '1');
+        await page.type('div[class="advanced-gas-controls"] div[class="form-field"]:nth-child(2) input', String(config.GAS_AMOUNT));
 
         await page.click('div[class="popover-container"] button[class*="btn-primary"]');
 
