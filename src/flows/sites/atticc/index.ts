@@ -2,8 +2,8 @@ import { Browser } from "puppeteer";
 import { timeout, random_delay } from "../../../../utils";
 
 import sheetsAPI from "../../../services/SheetsAPI";
-import flows from "../../index";
 import config from "../../../config";
+import flows from "../../index";
 
 export default async (browser: Browser, profile: IJSONAccount) => {
     const page = await browser.newPage();
@@ -22,7 +22,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
     }
 
     async function create_new_post(): Promise<void> {
-        if (config.MAKE_POST) {
+        if (config.SITES.ATTICC.MAKE_POST) {
             await enable_free_mint()
 
             await timeout(2000);
@@ -38,17 +38,22 @@ export default async (browser: Browser, profile: IJSONAccount) => {
     }
 
     async function collect_gift() {
-        const gift = await page.waitForSelector('div[class*="MuiIconButton-root"] svg:has(linearGradient)', { visible: true, timeout: 60000 })
+        if (config.SITES.ATTICC.COLLECT_GIFT) {
+            const gift = await page.waitForSelector('div[class*="MuiIconButton-root"] svg:has(linearGradient)', {
+                visible: true,
+                timeout: 60000
+            })
 
-        if (gift) {
-            await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
+            if (gift) {
+                await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
 
-            await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', { visible: true });
-            await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
+                await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', {visible: true});
+                await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
 
-            await flows.metamask.notification(browser);
+                await flows.metamask.notification(browser);
 
-            await timeout(3000);
+                await timeout(3000);
+            }
         }
     }
 

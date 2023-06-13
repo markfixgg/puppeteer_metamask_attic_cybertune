@@ -3,6 +3,7 @@ import { Browser, Page } from "puppeteer";
 import { timeout, random_delay } from "../../../../utils";
 
 import sheetsAPI from "../../../services/SheetsAPI";
+import config from "../../../config";
 import flows from "../../index";
 
 export default async (browser: Browser, profile: IJSONAccount) => {
@@ -41,13 +42,13 @@ export default async (browser: Browser, profile: IJSONAccount) => {
             const follow = await block.$('div[class*="CardAuthorBox"] button[class*="ButtonPrimary"]:nth-child(1)');
             const subscribe = await block.$('div[class*="CardAuthorBox"] button[class*="ButtonPrimary"]:nth-child(2)');
 
-            if (follow) {
+            if (follow && config.SITES.CYBERTUNE.FOLLOW_ARTIST) {
                 await follow.click();
 
                 await timeout(3000);
             }
 
-            if (subscribe) {
+            if (subscribe && config.SITES.CYBERTUNE.SUBSCRIBE_ARTIST) {
                 await subscribe.click();
 
                 await flows.metamask.notification(browser);
@@ -75,18 +76,20 @@ export default async (browser: Browser, profile: IJSONAccount) => {
      * STEP 3: Write a new post in the profile
      */
     await (async function create_post(): Promise<void> {
-        await page.waitForSelector('button:has(svg[viewBox="0 0 32 32"])', { visible: true });
-        await page.click('button:has(svg[viewBox="0 0 32 32"])');
+        if (config.SITES.CYBERTUNE.MAKE_POST) {
+            await page.waitForSelector('button:has(svg[viewBox="0 0 32 32"])', { visible: true });
+            await page.click('button:has(svg[viewBox="0 0 32 32"])');
 
-        await page.waitForSelector('div[data-headlessui-portal]:nth-child(2) input[name="title"]', { visible: true });
-        await page.type('div[data-headlessui-portal]:nth-child(2) input[name="title"]', profile.message);
+            await page.waitForSelector('div[data-headlessui-portal]:nth-child(2) input[name="title"]', { visible: true });
+            await page.type('div[data-headlessui-portal]:nth-child(2) input[name="title"]', profile.message);
 
-        await page.waitForSelector('div[data-headlessui-portal]:nth-child(2) textarea[name="body"]', { visible: true });
-        await page.type('div[data-headlessui-portal]:nth-child(2) textarea[name="body"]', profile.message);
+            await page.waitForSelector('div[data-headlessui-portal]:nth-child(2) textarea[name="body"]', { visible: true });
+            await page.type('div[data-headlessui-portal]:nth-child(2) textarea[name="body"]', profile.message);
 
-        await page.click('div[data-headlessui-portal]:nth-child(2) div[role="dialog"] button[class*="ButtonPrimary"]');
+            await page.click('div[data-headlessui-portal]:nth-child(2) div[role="dialog"] button[class*="ButtonPrimary"]');
 
-        await timeout(5000);
+            await timeout(5000);
+        }
     })()
         .then(() => sheetsAPI.logger.info('cybertune - Writing new post', profile.id))
         .catch(() => sheetsAPI.logger.error('cybertune - Error happened while writing new post', profile.id));
@@ -94,9 +97,11 @@ export default async (browser: Browser, profile: IJSONAccount) => {
     /**
      * STEP 4: Leave like on newly created post
      */
-    await (async function like(retries: number = 0): Promise<void> {
-        await page.waitForSelector('div[class*="CardNFT"]:nth-child(1) button:nth-child(4)', { visible: true });
-        await page.click('div[class*="CardNFT"]:nth-child(1) button:nth-child(4)', { count: 4, delay: 2000 });
+    await (async function like(): Promise<void> {
+        if (config.SITES.CYBERTUNE.LEAVE_LIKE) {
+            await page.waitForSelector('div[class*="CardNFT"]:nth-child(1) button:nth-child(4)', { visible: true });
+            await page.click('div[class*="CardNFT"]:nth-child(1) button:nth-child(4)', { count: 4, delay: 2000 });
+        }
     })()
         .then(() => sheetsAPI.logger.info('cybertune - Liking newly created post', profile.id))
         .catch(() => sheetsAPI.logger.error('cybertune - Error happened while liking newly created post', profile.id));
@@ -105,15 +110,17 @@ export default async (browser: Browser, profile: IJSONAccount) => {
      * STEP 4: Leave comment on newly created post
      */
     await (async function leave_comment() {
-        await page.waitForSelector('div[class*="CardNFT"]:nth-child(1) button:nth-child(3)', { visible: true });
-        await page.click('div[class*="CardNFT"]:nth-child(1) button:nth-child(3)');
+        if (config.SITES.CYBERTUNE.LEAVE_COMMENT) {
+            await page.waitForSelector('div[class*="CardNFT"]:nth-child(1) button:nth-child(3)', { visible: true });
+            await page.click('div[class*="CardNFT"]:nth-child(1) button:nth-child(3)');
 
-        await page.waitForSelector('div[id="headlessui-portal-root"] textarea', { visible: true });
-        await page.type('div[id="headlessui-portal-root"] textarea', profile.message);
+            await page.waitForSelector('div[id="headlessui-portal-root"] textarea', { visible: true });
+            await page.type('div[id="headlessui-portal-root"] textarea', profile.message);
 
-        await page.click('div[id="headlessui-portal-root"] button[class*="ButtonPrimary"]');
+            await page.click('div[id="headlessui-portal-root"] button[class*="ButtonPrimary"]');
 
-        await timeout(5000);
+            await timeout(5000);
+        }
     })()
         .then(() => sheetsAPI.logger.info('cybertune - Leaving comment on newly created post', profile.id))
         .catch(() => sheetsAPI.logger.error('cybertune - Error happened while leaving comment on newly created post', profile.id));
