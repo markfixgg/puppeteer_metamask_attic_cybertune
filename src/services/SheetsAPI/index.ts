@@ -1,7 +1,5 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 
-import Color from 'color';
-
 import service_account from '../../config/service_account.json';
 import assetsAPI from "../AssetsAPI";
 import config from "../../config";
@@ -51,7 +49,7 @@ class SheetsAPI {
 
     logger = {
         datetime: () => moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-        log: async (message: string, profile_id: number, color: string) => {
+        log: async (message: string, profile_id: number, backgroundColor: { red: number; green: number; blue: number; alpha: number; }) => {
             const sheet = await this.get_sheet();
             const account = this.accounts.find((x) => x.id === profile_id) || {} as IJSONAccount;
 
@@ -66,25 +64,19 @@ class SheetsAPI {
                 return -1;
             })();
 
-            const { red, green, blue, alpha } = await (async () => {
-                const { r: red, g: green, b: blue, alpha = 1 } = Color(color).object() || {};
-
-                return { red, green, blue, alpha };
-            })().catch(() => ({ red: 255, green: 255, blue: 255, alpha: 1 }));
-
             if (column >= 0 && row >= 0) {
                 const cell = await sheet.getCell(row, column);
                       cell.value = message;
                       cell.wrapStrategy = "WRAP";
                       cell.horizontalAlignment = "LEFT";
-                      cell.backgroundColor = { red: red / 255, green: green / 255, blue: blue / 255, alpha };
+                      cell.backgroundColor = backgroundColor;
 
                 await cell.save();
             }
         },
-        info: async (message: string, profile_id: number)=> this.logger.log(`[INFO] [${this.logger.datetime()}]: ${message}`, profile_id, 'green'),
-        error: async (message: string, profile_id: number)=> this.logger.log(`[ERROR] [${this.logger.datetime()}]: ${message}`, profile_id, 'orange'),
-        warning: async (message: string, profile_id: number)=> this.logger.log(`[WARNING] [${this.logger.datetime()}]: ${message}`, profile_id, 'red'),
+        info: async (message: string, profile_id: number)=> this.logger.log(`[INFO] [${this.logger.datetime()}]: ${message}`, profile_id, { red: 133 / 255, green: 190 / 255, blue: 114 / 255, alpha: 1 }),
+        error: async (message: string, profile_id: number)=> this.logger.log(`[ERROR] [${this.logger.datetime()}]: ${message}`, profile_id, { red: 225 / 255, green: 87 / 255, blue: 91 / 255, alpha: 1 }),
+        warning: async (message: string, profile_id: number)=> this.logger.log(`[WARNING] [${this.logger.datetime()}]: ${message}`, profile_id, { red: 232 / 255, green: 132 / 255, blue: 51 / 255, alpha: 1 }),
     }
 }
 

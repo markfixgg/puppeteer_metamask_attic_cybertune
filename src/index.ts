@@ -29,7 +29,7 @@ const bootstrap = async () => {
             .then(() => {
                 assetsAPI.accounts.completed(profile.id);
 
-                sheetsAPI.logger.info('Iteration finished', profile.id)
+                sheetsAPI.logger.info(`Account [${profile.name}] successfully done`, profile.id);
             })
             .catch((error) => sheetsAPI.logger.error(error.message, profile.id))
     }
@@ -79,7 +79,7 @@ async function process_profile(profile: IJSONAccount) {
     }
 
     /**
-     * Link3To always lattest
+     * Link3To always latest
      */
     await flows.sites.link3to(browser)
         .then(() => sheetsAPI.logger.info(`Block "link3to" done`, profile.id))
