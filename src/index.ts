@@ -81,7 +81,7 @@ async function process_profile(profile: IJSONAccount) {
     /**
      * Link3To always latest
      */
-    await flows.sites.link3to(browser)
+    await flows.sites.link3to(browser, profile)
         .then(() => sheetsAPI.logger.info(`Block "link3to" done`, profile.id))
         .catch((error) => {
             console.error(`[ERROR] ${error.message}`);

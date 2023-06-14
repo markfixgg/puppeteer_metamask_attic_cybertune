@@ -23,6 +23,8 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
     async function create_new_post(): Promise<void> {
         if (config.SITES.ATTICC.MAKE_POST) {
+            await page.reload({ waitUntil: "networkidle2" });
+
             await enable_free_mint()
 
             await timeout(2000);
@@ -39,18 +41,31 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
     async function collect_gift() {
         if (config.SITES.ATTICC.COLLECT_GIFT) {
-            const gift = await page.waitForSelector('div[class*="MuiIconButton-root"] svg:has(linearGradient)', {
-                visible: true,
-                timeout: 60000
-            })
+            await page.reload({ waitUntil: "networkidle2" });
 
-            if (gift) {
-                await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
+            await page.waitForSelector('div[id="simple-tabpanel-posts"] div[class*="MuiGrid-root"]:has(linearGradient)', { visible: true, timeout: 60000 });
+
+            const posts = await page.$$('div[id="simple-tabpanel-posts"] div[class*="MuiGrid-root"]:has(linearGradient)');
+            if (!posts.length) return sheetsAPI.logger.error('Posts with gift not found', profile.id);
+
+            for (const post of posts) {
+                const span = await post.$('span[class*="MuiTypography-gradient"]');
+                if (!span) continue;
+
+                const collected = await span.evaluate((span) => span.textContent !== '0');
+                if (collected) continue;
+
+                const button = await post.$('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
+                if (!button) continue;
+
+                await button.click();
 
                 await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', { visible: true });
                 await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
 
                 await flows.metamask.notification(browser);
+
+                await sheetsAPI.logger.info('atticc - Gift collected', profile.id);
 
                 await timeout(3000);
             }
