@@ -17,6 +17,7 @@ namespace IDolphinAPI {
 
 interface IJSONAccount {
     id: number;
+    name: string;
     wallet: string;
     password: string;
     priority: number;
