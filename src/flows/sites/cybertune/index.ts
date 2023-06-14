@@ -67,6 +67,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
      */
     await (async function open_profile(): Promise<void> {
         await page.waitForSelector('div[class*="Header"] div[class*="space-x-1.5"] button[class*="ButtonSecondary"]');
+
         (await page.$('div[class*="Header"] div[class*="space-x-1.5"] button[class*="ButtonSecondary"]'))?.evaluate((button) => button.click());
     })()
         .then(() => sheetsAPI.logger.info('cybertune - Opening profile', profile.id))

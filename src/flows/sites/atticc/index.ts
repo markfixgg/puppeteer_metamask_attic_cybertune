@@ -47,7 +47,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
             if (gift) {
                 await page.click('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
 
-                await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', {visible: true});
+                await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', { visible: true });
                 await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
 
                 await flows.metamask.notification(browser);
