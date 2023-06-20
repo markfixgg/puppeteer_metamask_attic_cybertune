@@ -68,11 +68,12 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
                 await timeout(3000);
 
+                const textContent = (await element.evaluate((element) => element.textContent || "")).toLowerCase();
                 const classname = await (await element.getProperty('className')).jsonValue();
                 const disabled = await (await element.getProperty('disabled')).jsonValue();
 
                 // Sometimes button already clicked once, and we need to click only one time
-                if (disabled) {
+                if (disabled && textContent.includes('claimed')) {
                     await sheetsAPI.logger.info(title, profile.id);
 
                     continue;
@@ -83,8 +84,10 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
                     await timeout(3000);
 
+                    const textContent = (await element.evaluate((element) => element.textContent || "")).toLowerCase();
                     const disabled = await (await element.getProperty('disabled')).jsonValue();
-                    if (disabled) {
+
+                    if (disabled && textContent.includes('claimed')) {
                         await sheetsAPI.logger.info(title, profile.id);
 
                         continue;
@@ -98,6 +101,21 @@ export default async (browser: Browser, profile: IJSONAccount) => {
         }
 
         await timeout(5000);
+    })();
+
+    await (async function log_disabled_buttons () {
+        const [ section ]  = await page.$x('//section[.//h6[contains(text(), "CyberConnect Protocol Engagement")]]');
+
+        const buttons = await section.$$('button[disabled]');
+        const disabled = [];
+
+        for (const button of buttons) {
+            const textContent = (await button.evaluate((button) => button.textContent || "")).toLowerCase();
+
+            if (textContent.includes('claimed')) disabled.push(button);
+        }
+
+        await sheetsAPI.logger.info(`Claimed buttons: ${disabled.length}`, profile.id);
     })();
 
     await page.close();
