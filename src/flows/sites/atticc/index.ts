@@ -19,13 +19,15 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
         await page.waitForSelector('div[class*="MuiDialog-container"]:has(input[id="isFreeMint"]) div[class*="MuiDialogActions"] button:nth-child(2)', { visible: true });
         await page.click('div[class*="MuiDialog-container"]:has(input[id="isFreeMint"]) div[class*="MuiDialogActions"] button:nth-child(2)');
+
+        await sheetsAPI.logger.info('atticc - free mint enabled', profile.id);
     }
 
     async function create_new_post(): Promise<void> {
         if (config.SITES.ATTICC.MAKE_POST) {
             await page.reload({ waitUntil: "networkidle2" });
 
-            await enable_free_mint()
+            await enable_free_mint();
 
             await timeout(2000);
 
@@ -35,6 +37,8 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
             await flows.metamask.notification(browser);
 
+            await sheetsAPI.logger.info('atticc - post created', profile.id);
+
             await timeout(3000);
         }
     }
@@ -43,32 +47,39 @@ export default async (browser: Browser, profile: IJSONAccount) => {
         if (config.SITES.ATTICC.COLLECT_GIFT) {
             await page.reload({ waitUntil: "networkidle2" });
 
-            await page.waitForSelector('div[id="simple-tabpanel-posts"] div[class*="MuiGrid-root"]:has(linearGradient)', { visible: true, timeout: 60000 });
+            await page.waitForSelector('div[class*="MuiIconButton-root"] svg:has(linearGradient)', { visible: true, timeout: 60000 });
 
-            const posts = await page.$$('div[id="simple-tabpanel-posts"] div[class*="MuiGrid-root"]:has(linearGradient)');
-            if (!posts.length) return sheetsAPI.logger.error('Posts with gift not found', profile.id);
+            // How much collect button we will check
+            const buttons = (await page.$$('div[class*="MuiIconButton-root"] svg:has(linearGradient)')).slice(0, 5);
 
-            for (const post of posts) {
-                const span = await post.$('span[class*="MuiTypography-gradient"]');
-                if (!span) continue;
-
-                const collected = await span.evaluate((span) => span.textContent !== '0');
-                if (collected) continue;
-
-                const button = await post.$('div[class*="MuiIconButton-root"] svg:has(linearGradient)');
-                if (!button) continue;
-
+            for (const button of buttons) {
                 await button.click();
 
-                await page.waitForSelector('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]', { visible: true });
-                await page.click('div[class*="MuiDialogContent-root"] button[class*="MuiButton-fillGradientSizeMedium"]');
+                const dialog = await page.waitForSelector('div[class*="MuiDialog-root"]', { visible: true, timeout: 60000 }).catch(() => null);
+                if (!dialog) {
+                    await page.click('div[class*="MuiDialog-root"] button[aria-label="close"]').catch(() => {});
+
+                    continue;
+                }
+
+                const collect = await page.$('div[class*="MuiDialog-root"] button[class*="MuiButton-fillGradientPrimary"]:not([disabled])');
+
+                if (!collect) {
+                    await page.click('div[class*="MuiDialog-root"] button[aria-label="close"]');
+
+                    await timeout(3000);
+
+                    continue;
+                }
+
+                await collect.click();
 
                 await flows.metamask.notification(browser);
 
-                await sheetsAPI.logger.info('atticc - Gift collected', profile.id);
-
-                await timeout(3000);
+                return sheetsAPI.logger.info('atticc - gift collected', profile.id);
             }
+
+            return sheetsAPI.logger.error('atticc - gift not found', profile.id);
         }
     }
 
@@ -79,8 +90,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
 
     for (const block of blocks) {
         await block.method()
-            .then(() => sheetsAPI.logger.info(`${block.message} success`, profile.id))
-            .catch(() => sheetsAPI.logger.info(`${block.message} fail`, profile.id));
+            .catch(() => sheetsAPI.logger.error(`${block.message} | unhandled error`, profile.id));
 
         await timeout(3000);
     }
