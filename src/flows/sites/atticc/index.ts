@@ -16,8 +16,7 @@ export default async (browser: Browser, profile: IJSONAccount) => {
                 await sheetsAPI.logger.info('atticc - logged into account', profile.id);
 
                 await page.reload({ waitUntil: "domcontentloaded" });
-            })
-            .catch((error) => console.log(error));
+            });
     })();
 
     async function enable_free_mint(): Promise<void> {
