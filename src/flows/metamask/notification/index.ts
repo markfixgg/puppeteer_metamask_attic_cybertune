@@ -6,6 +6,7 @@ import config from "../../../config";
 
 const markers = {
     'confirm-page-container-summary': 'div[class="confirm-page-container-summary"]',
+    'request-signature__container': 'div[class="request-signature__container"]',
     'signature-request-siwe': 'div[class="signature-request-siwe"]',
     'permissions-connect': 'div[class="permissions-connect"]',
 }
@@ -36,6 +37,22 @@ const functions = {
             await page.click('button[class*="btn-primary"]');
         }
     },
+    'request-signature__container': async (page: Page) => {
+        await page.waitForSelector('div[class="request-signature__row-value"]', { visible: true, timeout: 60000 });
+
+        const message = await page.evaluate(() => document.querySelector('div[class="request-signature__row-value"]')?.textContent);
+        if (!message || !message.includes('Sign to verify wallet ownership in Atticc platform')) return page.close();
+
+        await page.waitForSelector('button[class*="btn-primary"]', { visible: true });
+        await page.click('button[class*="btn-primary"]');
+
+        await timeout(2000);
+
+        if (!page.isClosed()) {
+            await page.waitForSelector('button[class*="btn-primary"]', { visible: true });
+            await page.click('button[class*="btn-primary"]');
+        }
+    },
     'permissions-connect': async (page: Page) => {
         while (!page.isClosed()) {
             await page.waitForSelector('button[class*="btn-primary"]', { visible: true });
@@ -46,8 +63,8 @@ const functions = {
     },
 }
 
-export default async (browser: Browser): Promise<any> => {
-    const [ error, notification ] = await to(wait([ waitForNotificationWindow(browser) ], 60000)) as [ string, Target ];
+export default async (browser: Browser, timeout: number = 60000): Promise<any> => {
+    const [ error, notification ] = await to(wait([ waitForNotificationWindow(browser) ], timeout)) as [ string, Target ];
     if (error) return Promise.reject(error);
 
     const notification_page = await notification.page();
