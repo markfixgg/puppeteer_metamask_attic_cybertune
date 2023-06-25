@@ -65,7 +65,7 @@ const functions = {
 
 export default async (browser: Browser, timeout: number = 60000): Promise<any> => {
     const [ error, notification ] = await to(wait([ waitForNotificationWindow(browser) ], timeout)) as [ string, Target ];
-    if (error || !notification) return Promise.reject(error);
+    if (error) return Promise.reject(error);
 
     const notification_page = await notification.page();
     if (!notification_page) return Promise.reject('Notification page not found');

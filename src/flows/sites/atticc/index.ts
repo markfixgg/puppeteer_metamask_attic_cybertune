@@ -11,12 +11,13 @@ export default async (browser: Browser, profile: IJSONAccount) => {
     await page.goto(`https://atticc.xyz/users/${profile.wallet}/posts`, { waitUntil: 'domcontentloaded' });
 
     await (async function check_for_sign_confirmation(): Promise<void> {
-        await flows.metamask.notification(browser, 20000)
+        await flows.metamask.notification(browser, 10000)
             .then(async () => {
                 await sheetsAPI.logger.info('atticc - logged into account', profile.id);
 
                 await page.reload({ waitUntil: "domcontentloaded" });
-            });
+            })
+            .catch(() => {});
     })();
 
     async function enable_free_mint(): Promise<void> {

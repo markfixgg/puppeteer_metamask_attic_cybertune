@@ -8,10 +8,9 @@ export const timeout = (milliseconds: number) => new Promise((resolve) => setTim
  * Wait for promise, with maximum execution time
  * */
 export const wait = (promises: Promise<any>[], milliseconds: number) => {
-    return Promise.race([
-        new Promise((reject) => setTimeout(() => reject('Promise execution timeout exceeded'), milliseconds)),
-        ...promises,
-    ])
+    const timeout = new Promise<string>((resolve, reject) => setTimeout(reject, milliseconds, 'Promise execution timeout exceeded'));
+
+    return Promise.race([ ...promises, timeout ]);
 }
 
 export const random_delay = () => new Promise((resolve) => setTimeout(resolve, _.sample(config.DELAYS)));
