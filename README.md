@@ -26,4 +26,4 @@
 1) Timeouts:
    2) In utils.ts file we have two functions:
       3) timeout - static timeout, ex: ```timeout(3000)``` *will be always 3s*
-      4) random_delay - take delay from array# freelance-metamask_minter
+      4) random_delay - take delay from array
