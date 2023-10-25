@@ -1,3 +1,5 @@
+# freelance-metamask_minter
+
 # Fill in configs
 1) In config file fields that need to be configured: 
    1) DOLPHIN_BEARER - API key that can be generated at Dolphin site (dashboard => settings)
@@ -24,4 +26,4 @@
 1) Timeouts:
    2) In utils.ts file we have two functions:
       3) timeout - static timeout, ex: ```timeout(3000)``` *will be always 3s*
-      4) random_delay - take delay from array
+      4) random_delay - take delay from array# freelance-metamask_minter
